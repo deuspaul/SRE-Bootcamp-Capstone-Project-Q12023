@@ -1,5 +1,13 @@
-
 FROM python:3-alpine
 
-# Add your instructions to dockerize the application
-# App must run on port 8000
+WORKDIR /src
+
+COPY . .
+
+RUN pip install -r requirements.txt
+
+ENV FLASK_APP=api.py
+
+EXPOSE 8000
+
+CMD [ "python","api.py"]
