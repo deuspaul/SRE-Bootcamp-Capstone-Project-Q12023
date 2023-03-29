@@ -42,8 +42,8 @@ jobs:
       - name: test with pytest
         id: pytest
         run: |
-          test_results="python/test-results.xml"
-          pytest ./python/tests_networking.py --junit-xml "${test_results}"
+          test_results="test-results.xml"
+          pytest tests_networking.py --junit-xml "${test_results}"
 
           # Generate output
           echo "report_paths=${test_results}" | tee -a $GITHUB_OUTPUT
