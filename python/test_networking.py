@@ -1,9 +1,11 @@
-from convert import *
+from convert import CidrMaskConvert
 import unittest
+
+
 class TestStringMethods(unittest.TestCase):
     def setUp(self):
         self.convert = CidrMaskConvert()
-        self.validate = IpValidate()
+        # self.validate = IpValidate()
 
     def test_valid_cidr_to_mask(self):
         self.assertEqual('128.0.0.0', self.convert.cidr_to_mask('1'))

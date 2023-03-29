@@ -28,7 +28,8 @@ class CidrMaskConvert:
         for i in octet_list:
             try:
                 int(i)
-            except:
+            except ValueError as e:
+                print(f"Error: {e}")
                 return "Invalid"
             if (isinstance(int(i), int) and int(i) < 256 and len(octet_list) == 4 and (int(i) == 0 or int(i) > 127)):
                 if (previous_octet == -1 or int(i) <= previous_octet):
