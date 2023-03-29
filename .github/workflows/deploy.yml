@@ -1,0 +1,191 @@
+name: deploy-blue-green
+on:
+  workflow_dispatch:
+  pull_request:
+  push: #to be changed to on pull requests
+    branches: 
+      - main
+    paths-ignore:
+      - '.github/workflows/**'
+
+env:
+  AWS_ACCOUNT_ID: 094645247702
+  AWS_DEFAULT_REGION: us-east-2
+  AWS_DEFAULT_OUTPUT: json
+
+  HOSTED_ZONE_ID: Z123456789ABC1
+  ZONE_NAME: rest-service.qa.my-company.com.
+  ECS_CLUSTER: qa-default-01
+  SERVICE_BLUE: qa-rest-service-blue
+  SERVICE_GREEN: qa-rest-service-green
+  REPOSITORY_NAME: rest-service  
+
+permissions:
+  id-token: write
+  contents: write
+  actions: read
+
+jobs:
+  deploy-staging:
+    name: deploy to staging
+    runs-on: ubuntu-latest
+    environment:
+      name: "staging"
+      url: "http://melted-chickens.surge.sh"
+      #url:  ${{steps.deploy-to-staging.outputs.webapp-url}}
+    steps:
+      - name: "deploy to staging"
+        id: deploy-to-staging
+        shell: bash
+        run: echo deploying to staging!
+
+  # deploy-ecs: #Based on: https://docs.github.com/en/actions/deployment/deploying-to-your-cloud-provider/deploying-to-amazon-elastic-container-service
+  #   name: Deploy
+  #   runs-on: ubuntu-latest
+  #   environment: production
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ env.AWS_REGION }}
+
+  #     - name: Login to Amazon ECR
+  #       id: login-ecr
+  #       uses: aws-actions/amazon-ecr-login@aaf69d68aa3fb14c1d5a6be9ac61fe15b48453a2
+
+  #     - name: Build, tag, and push image to Amazon ECR
+  #       id: build-image
+  #       env:
+  #         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+  #         IMAGE_TAG: ${{ github.sha }}
+  #       run: |
+  #         # Build a docker container and
+  #         # push it to ECR so that it can
+  #         # be deployed to ECS.
+  #         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+  #         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+  #         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+  #     - name: Fill in the new image ID in the Amazon ECS task definition
+  #       id: task-def
+  #       uses: aws-actions/amazon-ecs-render-task-definition@97587c9d45a4930bf0e3da8dd2feb2a463cf4a3a
+  #       with:
+  #         task-definition: ${{ env.ECS_TASK_DEFINITION }}
+  #         container-name: ${{ env.CONTAINER_NAME }}
+  #         image: ${{ steps.build-image.outputs.image }}
+
+  #     - name: Deploy Amazon ECS task definition
+  #       uses: aws-actions/amazon-ecs-deploy-task-definition@de0132cf8cdedb79975c6d42b77eb7ea193cf28e
+  #       with:
+  #         task-definition: ${{ steps.task-def.outputs.task-definition }}
+  #         service: ${{ env.ECS_SERVICE }}
+  #         cluster: ${{ env.ECS_CLUSTER }}
+  #         wait-for-service-stability: true
+
+
+  deploy-production:
+    name: deploy to production with blue/green 
+    needs: [deploy-staging]
+    runs-on: ubuntu-latest
+    environment:
+      name: "production"
+      url: "http://melted-chickes.surge.sh"
+      #url: ${{steps.deploy-to-production.outputs.webapp-url}}
+
+    steps:
+      - name: Get current date
+        id: get-current-date
+        run: echo "::set-output name=date::$(date +'%Y%m%d')"
+
+      - uses: actions/checkout@v2
+
+      # - name: Configure AWS credentials [QA]
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     role-to-assume: arn:aws:iam::$:role/qa-github-actions-ecs
+      #     aws-region: $
+
+      # - uses: "marvinpinto/action-inject-ssm-secrets@latest"
+      #   with:
+      #     ssm_parameter: "/devops/bastion/SLACK_WEBHOOK"
+      #     env_variable_name: "slack_webhook_url"
+
+      # - uses: "marvinpinto/action-inject-ssm-secrets@latest"
+      #   with:
+      #     ssm_parameter: "/devops/github/PERSONAL_ACCESS_TOKEN"
+      #     env_variable_name: "ssm_github_token"
+
+      # - uses: "marvinpinto/action-inject-ssm-secrets@latest"
+      #   with:
+      #     ssm_parameter: "/devops/github/ORGANIZATION"
+      #     env_variable_name: "ssm_github_organization"
+
+      # - uses: actions/checkout@v2
+      #   with:
+      #     repository: $/devops-tools
+      #     path: ./devops-tools
+      #     token: $
+
+      # - name: Get blue-green status [QA]
+      #   uses: "cwong47/action-deploy-ecs-blue-green@latest"
+      #   id: get-blue-green-info
+      #   with:
+      #     action: get-blue-green-info
+      #     hosted_zone_id: $
+      #     zone_name: $
+      #     ecs_service_blue: $
+      #     ecs_service_green: $
+      #     ecs_cluster: $
+
+      # - name: Scale up original secondary cluster [QA]
+      #   uses: "cwong47/action-deploy-ecs-blue-green@latest"
+      #   id: update-secondary-autoscale-capacity
+      #   with:
+      #     action: update-autoscale-capacity
+      #     ecs_cluster: $
+      #     ecs_service: $
+      #     min_capacity: $
+      #     max_capacity: $
+
+      # - name: Update Route53 weight for blue-green [QA]
+      #   uses: "cwong47/action-deploy-ecs-blue-green@latest"
+      #   id: update-primary-dns-weight
+      #   with:
+      #     action: update-dns-weight
+      #     hosted_zone_id: $
+      #     primary_route53_json: $
+      #     secondary_route53_json: $
+
+      # - name: Scale down original primary cluster [QA]
+      #   uses: "cwong47/action-deploy-ecs-blue-green@latest"
+      #   id: update-primary-autoscale-capacity
+      #   with:
+      #     action: update-autoscale-capacity
+      #     ecs_cluster: $
+      #     ecs_service: $
+      #     min_capacity: $
+      #     max_capacity: $
+
+      # - name: Associate Git tag to Commit ID [QA]
+      #   uses: rickstaa/action-create-tag@v1
+      #   with:
+      #     tag: build-deploy-blue-green-qa-release-$-$
+
+      # - name: Run shell commands
+      #   run: |
+      #     aws sts get-caller-identity
+      #     env | sort
+      #     ls -alF
+
+      # - uses: 8398a7/action-slack@v3
+      #   if: always()
+      #   with:
+      #     status: $
+      #     fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+      #   env:
+      #     SLACK_WEBHOOK_URL: $   
