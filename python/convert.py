@@ -21,7 +21,6 @@ class CidrMaskConvert:
         val = (mask + (str(totalbits) * lastbit) + zeroes)
         return val
 
-
     def mask_to_cidr(self, val):
         cidr = 0
         octet_list = val.split(".")

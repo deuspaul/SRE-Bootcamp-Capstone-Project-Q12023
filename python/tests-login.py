@@ -1,5 +1,5 @@
 import unittest
-from methods import *
+from methods import Token, Restricted
 
 
 class TestStringMethods(unittest.TestCase):
