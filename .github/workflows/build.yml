@@ -1,0 +1,15 @@
+name: build
+on: 
+    push:
+        branches:
+            - 'feature/**'
+
+jobs:
+    build-job:
+        runs-on: ubuntu-latest
+        steps:
+            - name: checkout
+              uses: actions/checkout@v3
+            #- name: testing
+            #  shell: bash
+            #  run: echo Hello World!
