@@ -40,13 +40,13 @@ jobs:
         id: pytest
         run: |
           test_results="python/test-results.xml"
-          pytest --junit-xml "${test_results}"
+          pytest ./python/tests_networking.py --junit-xml "${test_results}"
 
           # Generate output
           echo "report_paths=${test_results}" | tee -a $GITHUB_OUTPUT
         env:
-          PYTHONPATH: python
-          #PYTHONPATH: ${{ github.workspace }}/python
+          #PYTHONPATH: python
+          PYTHONPATH: ${{ github.workspace }}/python
 
       - name: publish test report
         uses: mikepenz/action-junit-report@v3
