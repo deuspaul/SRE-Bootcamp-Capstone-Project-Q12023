@@ -59,7 +59,7 @@ jobs:
       - name: generate coverage
         id: coverage
         run: |
-          pytest --cov --cov-report=xml
+          pytest ./python/ --cov --cov-report=xml
 
           # expose coverage path
           path=$(realpath --relative-to=${{ github.workspace }}) coverage.xml)
