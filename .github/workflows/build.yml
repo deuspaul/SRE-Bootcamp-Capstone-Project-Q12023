@@ -67,6 +67,7 @@ jobs:
           # expose coverage path
           path=$(realpath --relative-to=${{ github.workspace }} coverage.xml)
           echo "path=${path}" | tee -a $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
         env:
           PYTHONPATH: ${{ github.workspace }}/python
 
