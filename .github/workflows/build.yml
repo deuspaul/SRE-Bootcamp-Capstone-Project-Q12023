@@ -62,9 +62,6 @@ jobs:
       - name: generate coverage
         id: coverage
         run: |
-          cd python
-          pwd
-          ls
           pytest tests_networking.py --cov "." --cov-report=xml
 
           # expose coverage path
