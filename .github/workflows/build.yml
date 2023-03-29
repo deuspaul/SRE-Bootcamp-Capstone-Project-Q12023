@@ -10,6 +10,72 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v3
-      #- name: testing
-      #  shell: bash
-      #  run: echo Hello World!
+
+      - name: testing
+        shell: bash
+        run: echo Hello World!
+
+      - name: set up python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.97"
+
+      - name: install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest pytest-cov
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: test with pytest
+        id: pytest
+        run: |
+          test_results="${PWD}/test-results.xml"
+          pytest --junit-xml "${test_results}"
+
+          # Generate output
+          echo "report_paths=${test_results}" | tee -a $GITHUB_OUTPUT
+        env:
+          PYTHONPATH: ${{ github.workspace }}/python
+
+      - name: publish test report
+        uses: mikepenz/action-junit-report@v3
+        if: success() || failure()
+        with:
+          report_paths: ${{ steps.pytest.outputs.report_paths }}
+          detailed_summary: true
+          include_passed: true
+
+      - name: generate coverage
+        id: coverage
+        run: |
+          pytest --cov --cov-report=xml
+
+          # expose coverage path
+          path=$(realpath --relative-to=${{ github.workspace }}) coverage.xml)
+          echo "path=${path}" | tee -a $GITHUB_OUTPUT
+        env:
+          PYTHONPATH: ${{ github.workspace }}/python
+
+      - name: Publish Coverage
+        uses: 5monkeys/cobertura-action@master
+        with:
+          path: ${{ steps.coverage.outputs.path }}
+          minimum_coverage: 70
+          fail_below_threshold: true
+          show_line: true
+          show_branch: true
+
+      - name: Check Dirty Repository
+        run: |
+          if ! git diff-index --quiet HEAD; then
+            echo "::error::Dirty repository found"
+            git status --porcelain
+            exit 1
+          fi
