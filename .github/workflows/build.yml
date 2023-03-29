@@ -39,7 +39,7 @@ jobs:
       - name: test with pytest
         id: pytest
         run: |
-          test_results="${PWD}/test-results.xml"
+          test_results="python/test-results.xml"
           pytest --junit-xml "${test_results}"
 
           # Generate output
