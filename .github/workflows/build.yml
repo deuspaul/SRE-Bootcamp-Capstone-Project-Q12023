@@ -60,6 +60,8 @@ jobs:
         id: coverage
         run: |
           cd python
+          pwd
+          ls
           pytest --cov --cov-report=xml
 
           # expose coverage path
